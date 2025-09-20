@@ -9,6 +9,32 @@ This guide provides step-by-step instructions to manually install the **illogica
 - **Basic command line knowledge**
 - **Backup your existing configurations** before proceeding
 
+### ⚠️ Important Warnings
+
+1. **This will replace existing configurations**: The installation process will overwrite many configuration files in `~/.config/`. Make sure to backup any important configurations first.
+
+2. **Python 3.12 required**: The setup requires Python 3.12 for proper Pillow library support.
+
+3. **Large download size**: The complete installation includes many packages and can be several GB in size.
+
+4. **GPU compatibility**: While the setup works on most systems, some features may require specific GPU drivers (especially for Hyprland compositing effects).
+
+### Backup Your Configurations
+
+Before proceeding, create backups of your important configurations:
+
+```bash
+# Create backup directory
+mkdir -p ~/backup-$(date +%Y%m%d)
+
+# Backup important config directories
+cp -r ~/.config/hypr ~/backup-$(date +%Y%m%d)/ 2>/dev/null || true
+cp -r ~/.config/fish ~/backup-$(date +%Y%m%d)/ 2>/dev/null || true
+cp -r ~/.config/kitty ~/backup-$(date +%Y%m%d)/ 2>/dev/null || true
+cp ~/.zshrc ~/backup-$(date +%Y%m%d)/ 2>/dev/null || true
+cp ~/.bashrc ~/backup-$(date +%Y%m%d)/ 2>/dev/null || true
+```
+
 ## Table of Contents
 
 1. [System Update and Basic Setup](#1-system-update-and-basic-setup)
@@ -148,13 +174,33 @@ fi
 
 ## 5. Install Python Dependencies
 
-Install Python packages using uv:
+Install Python packages using uv (with specific versions from requirements):
 
 ```bash
-uv venv ~/.local/state/quickshell/.venv
+# Create virtual environment
+uv venv ~/.local/state/quickshell/.venv --prompt .venv -p 3.12
+
+# Activate the virtual environment
 source ~/.local/state/quickshell/.venv/bin/activate
-uv pip install build requests pillow pywal material-color-utilities opencv-python pycairo pygobject libsass
+
+# Install packages from the dotfiles requirements
+cd dots-hyprland
+uv pip install -r scriptdata/requirements.txt
+
+# Deactivate virtual environment
+deactivate
 ```
+
+The main Python dependencies include:
+- **build** - Build system interface
+- **pillow** - Image processing library  
+- **material-color-utilities** - Material Design color generation
+- **materialyoucolor** - Material You color theming
+- **pycairo** - Cairo graphics bindings
+- **pygobject** - GObject bindings for GTK
+- **libsass** - Sass CSS preprocessor
+- **pywayland** - Wayland protocol bindings
+- **click**, **loguru**, **psutil**, **tqdm** - Various utilities
 
 ## 6. User Groups and System Configuration
 
@@ -276,6 +322,12 @@ Make sure the Python virtual environment is properly configured. The environment
 
 ## 10. Final Steps and Verification
 
+### Make scripts executable:
+```bash
+cd dots-hyprland
+find .config/quickshell/ii/scripts -name "*.sh" -type f -exec chmod +x {} \;
+```
+
 ### Refresh font cache:
 ```bash
 fc-cache -fv
@@ -300,6 +352,7 @@ When logging in, select **Hyprland** (NOT "Hyprland with UWSM") from your displa
 1. **Select a wallpaper**: Press `Ctrl+Super+T`
 2. **View keybinds**: Press `Super+/`
 3. **Open terminal**: Press `Super+Enter`
+4. **Test Quickshell**: The status bar and widgets should be visible immediately
 
 ## Important Notes
 
@@ -324,16 +377,51 @@ For Quickshell development and testing:
 1. Check that `quickshell-git` is installed: `yay -Q quickshell-git`
 2. Verify Python virtual environment: `ls ~/.local/state/quickshell/.venv/`
 3. Check Quickshell config: `qs -c ii` in terminal for error messages
+4. Ensure the virtual environment has all required packages:
+   ```bash
+   source ~/.local/state/quickshell/.venv/bin/activate
+   python -c "import material_color_utilities, PIL, cairo; print('All imports successful')"
+   deactivate
+   ```
 
 ### If themes don't apply:
 1. Verify Qt/GTK theme packages are installed
 2. Check KDE settings: `systemsettings5`
 3. Restart applications or re-login
+4. Verify Kvantum theme: `kvantummanager`
 
 ### If hotkeys don't work:
 1. Check Hyprland config: `~/.config/hypr/hyprland.conf`
 2. Verify `hyprland.conf` includes all necessary config files
 3. Reload Hyprland: `hyprctl reload`
+4. Check for conflicting keybinds in other applications
+
+### Permission errors:
+1. Ensure user is in correct groups: `groups $(whoami)`
+2. Check service status: `systemctl --user status ydotool`
+3. Verify i2c module loading: `lsmod | grep i2c_dev`
+
+### Performance issues:
+1. Check GPU drivers are properly installed
+2. Verify Hyprland is using hardware acceleration: `hyprctl systeminfo`
+3. Reduce animation settings if needed in Hyprland config
+4. Monitor system resources: `htop`
+
+### If packages fail to install:
+1. Update package databases: `yay -Sy`
+2. Clear package cache: `yay -Yc`
+3. Install problematic packages individually
+4. Check AUR package build logs for specific errors
+
+### Font rendering issues:
+1. Refresh font cache: `fc-cache -fv`
+2. Verify font installation: `fc-list | grep -i rubik`
+3. Check fontconfig settings: `~/.config/fontconfig/fonts.conf`
+
+### Screen capture not working:
+1. Verify screen capture tools: `which hyprshot slurp swappy`
+2. Check Hyprland screen sharing: `hyprctl monitors`
+3. Test individual tools: `slurp` (should show selection overlay)
 
 ## Post-Installation Resources
 
@@ -354,5 +442,38 @@ For Quickshell development and testing:
 - **Media Controls**: Integration with audio/video players
 - **Screen Capture**: Screenshot and recording tools
 - **Custom Themes**: OneUI and Material Design inspired themes
+
+## Customization
+
+### Custom Hyprland Configuration
+Your personal customizations should go in `~/.config/hypr/custom/`:
+- `custom/keybinds.conf` - Additional keybindings
+- `custom/rules.conf` - Window rules
+- `custom/execs.conf` - Startup applications
+- `custom/general.conf` - General settings
+- `custom/env.conf` - Environment variables
+
+### Quickshell Customization
+- **Main config**: `~/.config/quickshell/ii/`
+- **Widgets**: `~/.config/quickshell/ii/modules/`
+- **Themes**: Colors are automatically generated from wallpapers
+- **Scripts**: `~/.config/quickshell/ii/scripts/`
+
+### Wallpaper and Colors
+- **Change wallpaper**: `Ctrl+Super+T` or use the settings panel
+- **Custom wallpapers**: Place images in your Pictures directory
+- **Color generation**: Automatic Material Design colors from wallpaper
+- **Manual color override**: Edit generated color files in `~/.local/state/quickshell/user/generated/`
+
+### AI Configuration
+1. **Gemini API**: Configure API key in Quickshell settings
+2. **Ollama**: Install ollama and download models for local AI
+3. **Custom prompts**: Add prompts to `~/.config/illogical-impulse/ai/prompts/`
+
+### Fish Shell Customization
+- **Config**: `~/.config/fish/config.fish`
+- **Functions**: `~/.config/fish/functions/`
+- **Completions**: Fish completions are automatically generated
+- **Starship prompt**: Configure in `~/.config/starship.toml`
 
 Enjoy your new Hyprland setup! 🎉
