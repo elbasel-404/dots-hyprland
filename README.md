@@ -28,7 +28,9 @@
 <details> 
   <summary>Installation (illogical-impulse Quickshell)</summary>
 
-   - See the [Wiki](https://end-4.github.io/dots-hyprland-wiki/en/ii-qs/01setup/) <sub>(both install script and manual installation available)</sub>
+   - **Automated**: See the [Wiki](https://end-4.github.io/dots-hyprland-wiki/en/ii-qs/01setup/) for script-based installation
+   - **Manual (Arch)**: See [MANUAL_INSTALLATION.md](MANUAL_INSTALLATION.md) for complete step-by-step manual installation on Arch Linux
+   - **Manual (NixOS)**: See [MANUAL_INSTALLATION_NIXOS.md](MANUAL_INSTALLATION_NIXOS.md) for complete step-by-step manual installation on NixOS
    - **Default keybinds**: Should be somewhat familiar to Windows or GNOME users. Important ones:
      - `Super`+`/` = keybind list
      - `Super`+`Enter` = terminal
